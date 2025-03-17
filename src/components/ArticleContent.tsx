@@ -1,24 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { getArticleBySlug, getAllArticles } from '@/lib/mdx';
-import { MDXRemote } from 'next-mdx-remote/rsc';
 
-export async function generateStaticParams() {
-  const articles = await getAllArticles();
-  return articles.map((article) => ({
-    slug: article.slug,
-  }));
+interface ArticleContentProps {
+  content: string;
+  frontmatter: {
+    title: string;
+    category: string;
+    date: string;
+    author: string;
+    coverImage: string;
+  };
 }
 
-type Props = {
-  params: {
-    slug: string;
-  };
-};
-
-export default async function ArticlePage({ params }: Props) {
-  const { code, frontmatter } = await getArticleBySlug(params.slug);
-
+export default function ArticleContent({ content, frontmatter }: ArticleContentProps) {
   return (
     <article className="max-w-4xl mx-auto space-y-8">
       {/* 返回按钮 */}
@@ -56,9 +50,10 @@ export default async function ArticlePage({ params }: Props) {
       </div>
 
       {/* 文章内容 */}
-      <div className="prose prose-gray max-w-none">
-        <MDXRemote source={code} />
-      </div>
+      <div
+        className="prose prose-gray max-w-none"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
 
       {/* 分享和评论区 */}
       <footer className="border-t pt-8">

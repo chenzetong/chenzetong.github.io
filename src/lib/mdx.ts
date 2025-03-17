@@ -1,29 +1,12 @@
-import { bundleMDX } from 'mdx-bundler';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeImgSize from 'rehype-img-size';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeStringify from 'rehype-stringify';
 import fs from 'fs';
 import path from 'path';
-
-export async function getMDXContent(source: string) {
-  const { code, frontmatter } = await bundleMDX({
-    source,
-    mdxOptions(options) {
-      options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
-      options.rehypePlugins = [
-        ...(options.rehypePlugins ?? []),
-        rehypeHighlight,
-        [rehypeImgSize, { dir: 'public' }],
-      ];
-      return options;
-    },
-  });
-
-  return {
-    code,
-    frontmatter,
-  };
-}
+import matter from 'gray-matter';
 
 export async function getArticleBySlug(slug: string) {
   const source = fs.readFileSync(
@@ -31,14 +14,18 @@ export async function getArticleBySlug(slug: string) {
     'utf8'
   );
 
-  const { code, frontmatter } = await getMDXContent(source);
+  const { content, data } = matter(source);
+  const html = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype)
+    .use(rehypeHighlight)
+    .use(rehypeStringify)
+    .process(content);
 
   return {
-    code,
-    frontmatter: {
-      ...frontmatter,
-      slug,
-    },
+    content: html.toString(),
+    frontmatter: data,
   };
 }
 
@@ -53,11 +40,11 @@ export async function getAllArticles() {
           path.join(process.cwd(), 'src/content/posts', file),
           'utf8'
         );
-        const { frontmatter } = await getMDXContent(source);
+        const { data } = matter(source);
         const slug = file.replace(/\.mdx$/, '');
 
         return {
-          ...frontmatter,
+          ...data,
           slug,
         };
       })
