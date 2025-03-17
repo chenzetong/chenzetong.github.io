@@ -10,11 +10,13 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function ArticlePage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+type Props = {
+  params: {
+    slug: string;
+  };
+};
+
+export default async function ArticlePage({ params }: Props) {
   const { code, frontmatter } = await getArticleBySlug(params.slug);
 
   return (
