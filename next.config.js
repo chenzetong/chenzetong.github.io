@@ -2,6 +2,7 @@
 const nextConfig = {
   output: 'export',
   basePath: '/chenzetong',
+  assetPrefix: '/chenzetong/',
   images: {
     unoptimized: true,
   },

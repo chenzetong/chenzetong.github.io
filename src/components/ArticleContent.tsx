@@ -18,7 +18,7 @@ export default function ArticleContent({ content, frontmatter }: ArticleContentP
       {/* 返回按钮 */}
       <div>
         <Link
-          href="/routes/research"
+          href="/research"
           className="text-blue-600 hover:text-blue-700 flex items-center space-x-2"
         >
           <span>← 返回列表</span>
