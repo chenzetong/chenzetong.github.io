@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && node copy-assets.js",
+    "build": "next build && node copy-assets.js && node fix-paths.js && node cleanup.js",
     "start": "next start",
     "lint": "next lint"
   },

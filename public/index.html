@@ -4,17 +4,25 @@
   <meta charset="utf-8">
   <title>陈泽通的个人网站</title>
   <script type="text/javascript">
-    // 处理 GitHub Pages 的 SPA 路由
-    (function(l) {
-      if (l.search[1] === '/') {
-        var decoded = l.search.slice(1).split('&').map(function(s) { 
+    // 检查是否在正确的路径
+    (function() {
+      var href = window.location.href;
+      if (href.includes('/chenzetong/')) {
+        // 如果 URL 包含旧的子路径，重定向到根域名
+        window.location.href = href.replace('/chenzetong/', '/');
+        return;
+      }
+      
+      // 处理 GitHub Pages 的 SPA 路由
+      if (window.location.search[1] === '/') {
+        var decoded = window.location.search.slice(1).split('&').map(function(s) { 
           return s.replace(/~and~/g, '&')
         }).join('?');
         window.history.replaceState(null, null,
-            l.pathname.slice(0, -1) + decoded + l.hash
+            window.location.pathname.slice(0, -1) + decoded + window.location.hash
         );
       }
-    }(window.location));
+    })();
   </script>
   <!-- 添加基本样式 -->
   <style>
@@ -55,8 +63,10 @@
     <p>正在加载网站...</p>
   </div>
   <script>
-    // 加载正确的入口页面
-    window.location.href = './index';
+    // 加载正确的入口页面，使用相对路径
+    setTimeout(function() {
+      window.location.href = './index';
+    }, 500);
   </script>
 </body>
 </html> 
