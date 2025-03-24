@@ -28,10 +28,10 @@ function fixPaths(htmlFile) {
   let content = fs.readFileSync(htmlFile, 'utf8');
   
   // 1. 修复双重 chenzetong 路径问题 (最高优先级)
-  content = content.replace(/href="\/chenzetong\/chenzetong\//g, 'href="/chenzetong/');
-  content = content.replace(/src="\/chenzetong\/chenzetong\//g, 'src="/chenzetong/');
-  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/chenzetong\//g, 'https://chenzetong.github.io/chenzetong/');
-  content = content.replace(/chenzetong\/chenzetong\//g, 'chenzetong/');
+  content = content.replace(/href="\/chenzetong\/chenzetong\//g, 'href="/');
+  content = content.replace(/src="\/chenzetong\/chenzetong\//g, 'src="/');
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/chenzetong\//g, 'https://chenzetong.github.io/');
+  content = content.replace(/chenzetong\/chenzetong\//g, '');
   
   // 2. 处理所有特定文件 - 提前处理，这样后面的通用替换规则不会影响它们
   const specificFiles = [
@@ -52,22 +52,22 @@ function fixPaths(htmlFile) {
       // 字体文件特殊处理 - 确保有相对路径和绝对路径两种形式
       content = content.replace(
         new RegExp(`href="[^"]*${file}"`, 'g'),
-        `href="/chenzetong/_next/static/media/${file}"`
+        `href="/_next/static/media/${file}"`
       );
       content = content.replace(
         new RegExp(`https://chenzetong\\.github\\.io/chenzetong/_next/static/media/${file}`, 'g'),
-        `https://chenzetong.github.io/chenzetong/_next/static/media/${file}`
+        `https://chenzetong.github.io/_next/static/media/${file}`
       );
       // 修复preload链接
       content = content.replace(
         new RegExp(`<link[^>]*rel="preload"[^>]*href="[^"]*${file}"[^>]*>`, 'g'),
-        match => match.replace(/href="[^"]*"/g, `href="/chenzetong/_next/static/media/${file}"`)
+        match => match.replace(/href="[^"]*"/g, `href="/_next/static/media/${file}"`)
       );
     } else if (file.endsWith('.css')) {
       // CSS文件处理
       content = content.replace(
         new RegExp(`href="[^"]*${file}"`, 'g'), 
-        `href="/chenzetong/_next/static/css/${file}"`
+        `href="/_next/static/css/${file}"`
       );
     } else if (file.endsWith('.js')) {
       // JS文件处理，根据文件名判断存放位置
@@ -77,28 +77,24 @@ function fixPaths(htmlFile) {
       }
       content = content.replace(
         new RegExp(`src="[^"]*${file}"`, 'g'), 
-        `src="/chenzetong/_next/static/${folder}/${file}"`
+        `src="/_next/static/${folder}/${file}"`
       );
     }
   });
   
-  // 3. 修复一般路径前缀
-  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="/chenzetong/_next/');
-  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="/chenzetong/_next/');
+  // 3. 移除所有/chenzetong前缀
+  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="/_next/');
+  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="/_next/');
+  content = content.replace(/href="\/chenzetong\/static\//g, 'href="/static/');
+  content = content.replace(/src="\/chenzetong\/static\//g, 'src="/static/');
+  content = content.replace(/href="\/chenzetong\/favicon/g, 'href="/favicon');
+  content = content.replace(/href="\/chenzetong\//g, 'href="/');
+  content = content.replace(/src="\/chenzetong\//g, 'src="/');
   
-  // 4. 修复静态资源路径
-  content = content.replace(/href="\/chenzetong\/static\//g, 'href="/chenzetong/static/');
-  content = content.replace(/src="\/chenzetong\/static\//g, 'src="/chenzetong/static/');
-  content = content.replace(/href="\/chenzetong\/favicon/g, 'href="/chenzetong/favicon');
+  // 4. 修复URL中的域名路径
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\//g, 'https://chenzetong.github.io/');
   
-  // 5. 修复相对路径
-  content = content.replace(/href="\/chenzetong\//g, 'href="/chenzetong/');
-  content = content.replace(/src="\/chenzetong\//g, 'src="/chenzetong/');
-  
-  // 6. 检查是否有任何无效的链接残留
-  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/_next\//g, 'https://chenzetong.github.io/chenzetong/_next/');
-  
-  // 7. 特殊处理preload链接，确保as属性正确
+  // 5. 特殊处理preload链接，确保as属性正确
   content = content.replace(
     /<link[^>]*rel="preload"[^>]*href="[^"]*a34f9d1faa5f3315-s\.p\.woff2"[^>]*>/g,
     match => {
