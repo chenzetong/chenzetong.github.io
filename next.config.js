@@ -14,6 +14,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { dev, isServer }) => {
+    config.output.filename = '[name].js';
+    config.output.chunkFilename = '[name].js';
+    return config;
+  },
+  experimental: {
+    optimizeCss: false,
+  },
 };
 
 module.exports = nextConfig; 
