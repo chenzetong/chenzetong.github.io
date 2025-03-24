@@ -17,10 +17,25 @@ function processHtmlFiles(dir) {
       
       // 移除不正确的前缀
       content = content.replace(/\/chenzetong\/_next\//g, '/_next/');
+      content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/_next\//g, './_next/');
       
-      // 将 /_next/ 替换为相对路径
+      // 将绝对路径改为相对路径
       content = content.replace(/\"\/_next\//g, '"./_next/');
+      content = content.replace(/\'\/_next\//g, '\'./static/');
+      content = content.replace(/\"\/static\//g, '"./static/');
+      content = content.replace(/\"\/images\//g, '"./images/');
       
+      // 修复 link 和 script 标签中的路径
+      content = content.replace(/<link[^>]*href=["'](?:\/_next|\/chenzetong\/_next)([^"']*)["'][^>]*>/g, 
+                              (match, p1) => match.replace(/(?:\/_next|\/chenzetong\/_next)([^"']*)/, `./static${p1}`));
+      
+      content = content.replace(/<script[^>]*src=["'](?:\/_next|\/chenzetong\/_next)([^"']*)["'][^>]*>/g, 
+                              (match, p1) => match.replace(/(?:\/_next|\/chenzetong\/_next)([^"']*)/, `./static${p1}`));
+      
+      // 修复预加载字体路径
+      content = content.replace(/<link[^>]*href=["'](?:\/_next|\/chenzetong\/_next)\/static\/media\/([^"']*)["'][^>]*>/g, 
+                              (match, p1) => match.replace(/(?:\/_next|\/chenzetong\/_next)\/static\/media\/([^"']*)/, `./static/media/${p1}`));
+                              
       // 保存修改后的文件
       fs.writeFileSync(fullPath, content);
       console.log(`已修复: ${fullPath}`);

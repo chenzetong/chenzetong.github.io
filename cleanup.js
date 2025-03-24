@@ -4,23 +4,57 @@ const path = require('path');
 // 复制 _next 目录中的内容到 out 目录根级
 function copyNextContent() {
   const nextDir = path.join(__dirname, 'out', '_next');
-  const staticDir = path.join(nextDir, 'static');
   const outDir = path.join(__dirname, 'out');
   
-  if (fs.existsSync(staticDir)) {
-    // 创建目标目录
-    if (!fs.existsSync(path.join(outDir, 'static'))) {
-      fs.mkdirSync(path.join(outDir, 'static'), { recursive: true });
+  // 复制整个 _next 目录到 static 目录
+  if (fs.existsSync(nextDir)) {
+    // 创建 static 目录
+    const staticDir = path.join(outDir, 'static');
+    if (!fs.existsSync(staticDir)) {
+      fs.mkdirSync(staticDir, { recursive: true });
     }
     
-    // 复制 static 目录的内容
-    copyDirSync(staticDir, path.join(outDir, 'static'));
-    console.log('已复制 static 目录内容到根目录');
+    // 复制各种资源目录
+    ['css', 'js', 'chunks', 'media', 'static'].forEach(dirName => {
+      const srcDir = path.join(nextDir, dirName);
+      if (fs.existsSync(srcDir)) {
+        copyDirSync(srcDir, path.join(staticDir, dirName));
+      } else {
+        // 可能是子目录的情况
+        const staticSrcDir = path.join(nextDir, 'static', dirName);
+        if (fs.existsSync(staticSrcDir)) {
+          copyDirSync(staticSrcDir, path.join(staticDir, dirName));
+        }
+      }
+    });
+
+    // 直接复制 static 目录的内容
+    const nextStaticDir = path.join(nextDir, 'static');
+    if (fs.existsSync(nextStaticDir)) {
+      copyDirSync(nextStaticDir, staticDir);
+    }
+    
+    console.log('已复制资源文件到 static 目录');
+  }
+
+  // 复制根目录下的文件到 static 目录
+  const rootFiles = fs.readdirSync(outDir, { withFileTypes: true });
+  const staticDir = path.join(outDir, 'static');
+  
+  for (const entry of rootFiles) {
+    if (!entry.isDirectory() && entry.name.match(/\.(js|css)$/)) {
+      const srcPath = path.join(outDir, entry.name);
+      const destPath = path.join(staticDir, entry.name);
+      fs.copyFileSync(srcPath, destPath);
+      console.log(`已复制: ${entry.name} 到 static 目录`);
+    }
   }
 }
 
 // 递归复制目录
 function copyDirSync(src, dest) {
+  if (!fs.existsSync(src)) return;
+  
   fs.mkdirSync(dest, { recursive: true });
   const entries = fs.readdirSync(src, { withFileTypes: true });
   
@@ -53,9 +87,34 @@ function ensureNoJekyll() {
   }
 }
 
+// 复制 public 中的文件到出口目录
+function copyPublicFiles() {
+  const publicDir = path.join(__dirname, 'public');
+  const outDir = path.join(__dirname, 'out');
+  
+  if (fs.existsSync(publicDir)) {
+    // 确保 public 中的文件优先级高于生成的文件
+    const entries = fs.readdirSync(publicDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const srcPath = path.join(publicDir, entry.name);
+      const destPath = path.join(outDir, entry.name);
+      
+      if (entry.isDirectory()) {
+        copyDirSync(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+    
+    console.log('已复制 public 目录文件');
+  }
+}
+
 // 主函数
 function main() {
   copyNextContent();
+  copyPublicFiles();
   createCNAME();
   ensureNoJekyll();
   console.log('部署准备完成');

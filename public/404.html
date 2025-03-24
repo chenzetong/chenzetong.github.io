@@ -2,23 +2,97 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>页面重定向中...</title>
+  <title>页面未找到 - 陈泽通的个人网站</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f7f7f7;
+      color: #333;
+      flex-direction: column;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      font-size: 1.1rem;
+    }
+    a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #0070f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    a:hover {
+      background-color: #0051a2;
+    }
+    .error-code {
+      font-size: 6rem;
+      font-weight: bold;
+      color: #ddd;
+      margin: 0;
+      line-height: 1;
+    }
+  </style>
   <script>
     // 单页应用GitHub Pages路由处理
     (function() {
       var pathSegmentsToKeep = 0;
       var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      
+      // 检查是否在chenzetong子路径
+      if (l.pathname.includes('/chenzetong/')) {
+        // 重定向到根域名
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.replace('/chenzetong', '')
+        );
+        return;
+      }
+      
+      // 如果是404页面但不是直接访问的404.html
+      if (!l.pathname.endsWith('/404.html') && !l.pathname.endsWith('/404/')) {
+        // 将当前路径存储为查询参数并重定向到主页
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }
     })();
   </script>
 </head>
 <body>
-  <p>如果您没有被自动重定向，请<a href="/">点击这里</a>。</p>
+  <div class="container">
+    <p class="error-code">404</p>
+    <h1>页面未找到</h1>
+    <p>抱歉，您要查找的页面不存在或已被移动。</p>
+    <p>您可以返回主页，或尝试使用导航菜单查找所需内容。</p>
+    <a href="/">返回主页</a>
+  </div>
 </body>
 </html> 
