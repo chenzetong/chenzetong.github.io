@@ -27,15 +27,19 @@ function copyNextContent() {
   const nextDir = path.join(__dirname, 'out', '_next');
   const outDir = path.join(__dirname, 'out');
   
-  // 复制整个 _next 目录到 static 目录
   if (fs.existsSync(nextDir)) {
-    // 创建 static 目录
+    // 复制整个 _next 目录到 static 目录
     const staticDir = path.join(outDir, 'static');
     if (!fs.existsSync(staticDir)) {
       fs.mkdirSync(staticDir, { recursive: true });
     }
     
-    // 复制各种资源目录
+    // 1. 复制资源到根目录 - 直接从 _next 复制到根目录
+    console.log('正在复制资源文件到根目录...');
+    copyDirSync(nextDir, outDir);
+    
+    // 2. 复制各种资源目录到 static 目录
+    console.log('正在复制资源文件到 static 目录...');
     ['css', 'js', 'chunks', 'media', 'static'].forEach(dirName => {
       const srcDir = path.join(nextDir, dirName);
       if (fs.existsSync(srcDir)) {
@@ -55,7 +59,7 @@ function copyNextContent() {
       copyDirSync(nextStaticDir, staticDir);
     }
     
-    console.log('已复制资源文件到 static 目录');
+    console.log('资源文件复制完成');
   }
 
   // 复制根目录下的文件到 static 目录
@@ -70,23 +74,130 @@ function copyNextContent() {
       console.log(`已复制: ${entry.name} 到 static 目录`);
     }
   }
+  
+  // 处理带有哈希值的文件（如：555d41a0fcb396b0.css, a34f9d1faa5f3315-s.p.woff2）
+  const hashFiles = findHashFiles(outDir);
+  if (hashFiles.length > 0) {
+    console.log(`找到 ${hashFiles.length} 个哈希文件需要复制`);
+    for (const file of hashFiles) {
+      // 获取相对路径
+      const relativePath = path.relative(outDir, file);
+      // 创建目标目录（如果不存在）
+      const targetDir = path.join(staticDir, path.dirname(relativePath));
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      // 复制文件
+      const destPath = path.join(staticDir, relativePath);
+      fs.copyFileSync(file, destPath);
+      console.log(`已复制哈希文件: ${relativePath} 到 static 目录`);
+    }
+  }
+}
+
+// 查找带有哈希值的文件
+function findHashFiles(dir) {
+  const results = [];
+  
+  function findRecursive(currentDir) {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      
+      if (entry.isDirectory()) {
+        // 忽略已经是 static 目录的路径
+        if (entry.name !== 'static') {
+          findRecursive(fullPath);
+        }
+      } else if (
+        // 匹配带有哈希值的常见文件模式
+        entry.name.match(/[a-f0-9]{8,}\.(?:js|css|woff2|woff|ttf|eot|svg|png|jpg|jpeg|gif)$/) ||
+        entry.name.match(/[a-f0-9]+-[a-f0-9]+\.(?:js|css|woff2|woff|ttf|eot|svg|png|jpg|jpeg|gif)$/) ||
+        // 匹配 Next.js 特殊格式的字体文件
+        entry.name.match(/[a-f0-9]+\.p\.(?:woff2|woff|ttf|eot)$/)
+      ) {
+        results.push(fullPath);
+      }
+    }
+  }
+  
+  findRecursive(dir);
+  return results;
+}
+
+// 特殊处理字体文件，确保正确复制
+function copyFontFiles() {
+  const outDir = path.join(__dirname, 'out');
+  const nextDir = path.join(outDir, '_next');
+  const staticDir = path.join(outDir, 'static');
+  
+  // 创建静态媒体目录
+  const staticMediaDir = path.join(staticDir, 'media');
+  if (!fs.existsSync(staticMediaDir)) {
+    fs.mkdirSync(staticMediaDir, { recursive: true });
+  }
+  
+  // 查找字体文件
+  const fontsPattern = /\.(woff2|woff|ttf|eot)$/;
+  const fontFiles = [];
+  
+  // 在 _next/static/media 目录中查找字体文件
+  const mediaDir = path.join(nextDir, 'static', 'media');
+  if (fs.existsSync(mediaDir)) {
+    const entries = fs.readdirSync(mediaDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (!entry.isDirectory() && fontsPattern.test(entry.name)) {
+        const srcPath = path.join(mediaDir, entry.name);
+        const destPath = path.join(staticMediaDir, entry.name);
+        
+        // 复制字体文件到静态目录
+        fs.copyFileSync(srcPath, destPath);
+        fontFiles.push(entry.name);
+        console.log(`已复制字体文件: ${entry.name} 到 static/media 目录`);
+      }
+    }
+  }
+  
+  // 同时复制到 _next/static/media 目录
+  const nextMediaDir = path.join(outDir, '_next', 'static', 'media');
+  if (!fs.existsSync(nextMediaDir)) {
+    fs.mkdirSync(nextMediaDir, { recursive: true });
+    
+    for (const fontFile of fontFiles) {
+      const srcPath = path.join(staticMediaDir, fontFile);
+      const destPath = path.join(nextMediaDir, fontFile);
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+  
+  return fontFiles.length;
 }
 
 // 递归复制目录
 function copyDirSync(src, dest) {
   if (!fs.existsSync(src)) return;
   
-  fs.mkdirSync(dest, { recursive: true });
+  // 确保目标目录存在
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
   const entries = fs.readdirSync(src, { withFileTypes: true });
   
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     
-    if (entry.isDirectory()) {
-      copyDirSync(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
+    try {
+      if (entry.isDirectory()) {
+        copyDirSync(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    } catch (err) {
+      console.error(`复制文件失败: ${srcPath} -> ${destPath}`, err.message);
     }
   }
 }
@@ -121,10 +232,14 @@ function copyPublicFiles() {
       const srcPath = path.join(publicDir, entry.name);
       const destPath = path.join(outDir, entry.name);
       
-      if (entry.isDirectory()) {
-        copyDirSync(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
+      try {
+        if (entry.isDirectory()) {
+          copyDirSync(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+      } catch (err) {
+        console.error(`复制文件失败: ${srcPath} -> ${destPath}`, err.message);
       }
     }
     
@@ -134,12 +249,20 @@ function copyPublicFiles() {
 
 // 主函数
 function main() {
-  copyStaticSite();  // 先复制静态站点文件
-  copyNextContent();
-  copyPublicFiles();
-  createCNAME();
-  ensureNoJekyll();
-  console.log('部署准备完成');
+  try {
+    copyNextContent();
+    const fontCount = copyFontFiles(); // 添加特殊字体文件处理
+    if (fontCount > 0) {
+      console.log(`已处理 ${fontCount} 个字体文件`);
+    }
+    copyPublicFiles();
+    createCNAME();
+    ensureNoJekyll();
+    copyStaticSite();  // 最后复制静态站点文件
+    console.log('部署准备完成');
+  } catch (err) {
+    console.error('部署过程出错:', err);
+  }
 }
 
 main(); 

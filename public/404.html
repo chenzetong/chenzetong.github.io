@@ -1,98 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-  <meta charset="utf-8">
-  <title>页面未找到 - 陈泽通的个人网站</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - 页面未找到 | 陈泽通的个人网站</title>
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
         Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       background-color: #f7f7f7;
       color: #333;
+      line-height: 1.6;
+      display: flex;
       flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       text-align: center;
     }
-    .container {
-      max-width: 600px;
-      padding: 2rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    
+    .error-code {
+      font-size: 8rem;
+      font-weight: bold;
+      margin: 0;
+      color: #0070f3;
+      line-height: 1;
+      text-shadow: 0 2px 10px rgba(0,112,243,0.2);
     }
+    
     h1 {
       font-size: 2.5rem;
-      margin-bottom: 1rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1.5rem;
       color: #333;
     }
+    
     p {
-      margin-bottom: 1.5rem;
-      line-height: 1.6;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+      color: #666;
     }
-    a {
+    
+    .back-button {
       display: inline-block;
-      padding: 0.75rem 1.5rem;
       background-color: #0070f3;
       color: white;
-      text-decoration: none;
+      padding: 0.8rem 1.5rem;
       border-radius: 5px;
+      text-decoration: none;
       font-weight: 500;
-      transition: background-color 0.2s;
+      font-size: 1.1rem;
+      transition: background-color 0.3s, transform 0.3s;
+      border: none;
+      box-shadow: 0 4px 14px rgba(0,118,255,0.39);
     }
-    a:hover {
-      background-color: #0051a2;
+    
+    .back-button:hover, .back-button:focus {
+      background-color: #0060df;
+      transform: translateY(-2px);
     }
-    .error-code {
-      font-size: 6rem;
-      font-weight: bold;
-      color: #ddd;
+    
+    .back-button:active {
+      transform: translateY(0);
+    }
+    
+    /* 页脚 */
+    .footer {
+      background-color: #fff;
+      padding: 1.5rem 0;
+      border-top: 1px solid #eaeaea;
+      text-align: center;
+    }
+    
+    .footer p {
       margin: 0;
-      line-height: 1;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      .error-code {
+        font-size: 6rem;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
     }
   </style>
   <script>
-    // 单页应用GitHub Pages路由处理
-    (function() {
-      var pathSegmentsToKeep = 0;
-      var l = window.location;
-      
-      // 检查是否在chenzetong子路径
-      if (l.pathname.includes('/chenzetong/')) {
-        // 重定向到根域名
-        l.replace(
-          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          l.pathname.replace('/chenzetong', '')
-        );
-        return;
-      }
-      
-      // 如果是404页面但不是直接访问的404.html
-      if (!l.pathname.endsWith('/404.html') && !l.pathname.endsWith('/404/')) {
-        // 将当前路径存储为查询参数并重定向到主页
-        l.replace(
-          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-          l.hash
-        );
-      }
-    })();
+    // 提供单页应用路由处理
+    document.addEventListener('DOMContentLoaded', function() {
+      // 处理返回首页的链接
+      document.getElementById('homeLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // 返回至默认页面
+        window.location.href = './';
+      });
+    });
   </script>
 </head>
 <body>
-  <div class="container">
-    <p class="error-code">404</p>
+  <main class="container">
+    <h2 class="error-code">404</h2>
     <h1>页面未找到</h1>
-    <p>抱歉，您要查找的页面不存在或已被移动。</p>
-    <p>您可以返回主页，或尝试使用导航菜单查找所需内容。</p>
-    <a href="/">返回主页</a>
-  </div>
+    <p>很抱歉，您尝试访问的页面不存在或已被移动。请检查输入的URL是否正确，或返回首页。</p>
+    <a href="./" id="homeLink" class="back-button">返回首页</a>
+  </main>
+  
+  <footer class="footer">
+    <p>&copy; 2024 陈泽通. 保留所有权利.</p>
+  </footer>
 </body>
 </html> 

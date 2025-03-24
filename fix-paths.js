@@ -43,7 +43,19 @@ function fixPaths(htmlFile) {
   content = content.replace(/href="\/chenzetong\//g, 'href="./');
   content = content.replace(/src="\/chenzetong\//g, 'src="./');
   
-  // 5. 修复 link 和 script 标签中的路径
+  // 5. 修复根路径引用
+  content = content.replace(/href="\//g, 'href="./');
+  content = content.replace(/src="\//g, 'src="./');
+  
+  // 6. 修复绝对 URL 引用
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/_next\//g, './_next/');
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/_next\//g, './_next/');
+  
+  // 7. 修复直接引用 _next 目录的资源
+  content = content.replace(/href="\/_next\//g, 'href="./_next/');
+  content = content.replace(/src="\/_next\//g, 'src="./_next/');
+
+  // 8. 修复 link 和 script 标签中的路径
   content = content.replace(/<link[^>]*href="\/([^"]*)"[^>]*>/g, (match, p1) => {
     return match.replace(`href="/${p1}"`, `href="./${p1}"`);
   });
@@ -52,21 +64,45 @@ function fixPaths(htmlFile) {
     return match.replace(`src="/${p1}"`, `src="./${p1}"`);
   });
   
-  // 6. 修复预加载字体路径
+  // 9. 修复预加载字体路径
   content = content.replace(/url\(\/chenzetong\/_next\/static\/media\//g, 'url(./_next/static/media/');
+  content = content.replace(/url\(\/_next\/static\/media\//g, 'url(./_next/static/media/');
   
-  // 7. 修复 JSON-LD 和其他内联脚本中的路径
+  // 10. 修复 JSON-LD 和其他内联脚本中的路径
   content = content.replace(/"url":\s*"\/chenzetong\//g, '"url": "./');
   
-  // 8. 修复根路径引用
-  content = content.replace(/href="\//g, 'href="./');
-  content = content.replace(/src="\//g, 'src="./');
-  
-  // 9. 处理页面内部的 a 标签链接
+  // 11. 处理页面内部的 a 标签链接
   content = content.replace(/<a[^>]*href="\/([^"]*)"[^>]*>/g, (match, p1) => {
     return match.replace(`href="/${p1}"`, `href="./${p1}"`);
   });
+
+  // 12. 修复 preload 链接
+  content = content.replace(/rel="preload" href="\/chenzetong\/_next\//g, 'rel="preload" href="./_next/');
+  content = content.replace(/rel="preload" href="\/_next\//g, 'rel="preload" href="./_next/');
   
+  // 13. 修复预加载字体 - 特别处理带 as 属性的 preload 链接
+  content = content.replace(/<link[^>]*rel="preload"[^>]*href="[^"]*\/chenzetong\/_next\/static\/media\/([^"]*)"[^>]*>/g, 
+    match => match.replace(/href="[^"]*\/chenzetong\/_next\/static\/media\/([^"]*)"/g, 'href="./_next/static/media/$1"'));
+  
+  content = content.replace(/<link[^>]*rel="preload"[^>]*href="[^"]*\/_next\/static\/media\/([^"]*)"[^>]*>/g, 
+    match => match.replace(/href="[^"]*\/_next\/static\/media\/([^"]*)"/g, 'href="./_next/static/media/$1"'));
+
+  // 14. 修复带有哈希值的CSS和JS文件路径 - 精确匹配长哈希值模式
+  content = content.replace(/href="[^"]*\/([a-f0-9]{8,}\.css)"/g, 'href="./static/$1"');
+  content = content.replace(/src="[^"]*\/([a-f0-9]{8,}\.js)"/g, 'src="./static/$1"');
+  
+  // 15. 处理带有破折号的哈希值文件
+  content = content.replace(/href="[^"]*\/([a-f0-9]+-[a-f0-9]+\.(?:css|js))"/g, 'href="./static/$1"');
+  content = content.replace(/src="[^"]*\/([a-f0-9]+-[a-f0-9]+\.(?:css|js))"/g, 'src="./static/$1"');
+  
+  // 16. 修复可能的字体文件引用
+  content = content.replace(/href="[^"]*\/([a-f0-9]+-[a-f0-9]+\.(?:woff2|woff|ttf|eot))"/g, 'href="./static/$1"');
+  content = content.replace(/src="[^"]*\/([a-f0-9]+-[a-f0-9]+\.(?:woff2|woff|ttf|eot))"/g, 'src="./static/$1"');
+  
+  // 17. 处理直接引用根目录下的哈希值文件
+  content = content.replace(/href="\/([a-f0-9]{8,}\.[a-z]+)"/g, 'href="./static/$1"');
+  content = content.replace(/src="\/([a-f0-9]{8,}\.[a-z]+)"/g, 'src="./static/$1"');
+
   fs.writeFileSync(htmlFile, content, 'utf8');
   console.log(`已完成文件处理: ${htmlFile}`);
 }
