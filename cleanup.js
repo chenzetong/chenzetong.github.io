@@ -1,6 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
+// 复制 static-site.html 到 out/index.html
+function copyStaticSite() {
+  const staticSitePath = path.join(__dirname, 'public', 'static-site.html');
+  const outIndexPath = path.join(__dirname, 'out', 'index.html');
+  
+  if (fs.existsSync(staticSitePath)) {
+    // 备份原始的 index.html (如果存在)
+    if (fs.existsSync(outIndexPath)) {
+      const backupPath = path.join(__dirname, 'out', 'index.original.html');
+      fs.copyFileSync(outIndexPath, backupPath);
+      console.log('已备份原始 index.html');
+    }
+    
+    // 复制 static-site.html 到 index.html
+    fs.copyFileSync(staticSitePath, outIndexPath);
+    console.log('已复制 static-site.html 到 out/index.html');
+  } else {
+    console.log('警告: static-site.html 不存在');
+  }
+}
+
 // 复制 _next 目录中的内容到 out 目录根级
 function copyNextContent() {
   const nextDir = path.join(__dirname, 'out', '_next');
@@ -113,6 +134,7 @@ function copyPublicFiles() {
 
 // 主函数
 function main() {
+  copyStaticSite();  // 先复制静态站点文件
   copyNextContent();
   copyPublicFiles();
   createCNAME();
