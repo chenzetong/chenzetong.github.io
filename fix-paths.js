@@ -33,62 +33,107 @@ function fixPaths(htmlFile) {
   content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/chenzetong\//g, 'https://chenzetong.github.io/chenzetong/');
   content = content.replace(/chenzetong\/chenzetong\//g, 'chenzetong/');
   
-  // 2. 修复路径前缀
-  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="/chenzetong/_next/');
-  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="/chenzetong/_next/');
-  
-  // 3. 修复静态资源路径
-  content = content.replace(/href="\/chenzetong\/static\//g, 'href="./static/');
-  content = content.replace(/src="\/chenzetong\/static\//g, 'src="./static/');
-  content = content.replace(/href="\/chenzetong\/favicon/g, 'href="./favicon');
-  
-  // 4. 修复相对路径
-  content = content.replace(/href="\/chenzetong\//g, 'href="./');
-  content = content.replace(/src="\/chenzetong\//g, 'src="./');
-  
-  // 5. 修复根路径引用
-  content = content.replace(/href="\//g, 'href="./');
-  content = content.replace(/src="\//g, 'src="./');
-  
-  // 6. 修复绝对 URL 引用
-  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/_next\//g, './_next/');
-  
-  // 7. 修复 preload 链接
-  content = content.replace(/<link[^>]*rel="preload"[^>]*href="\/chenzetong\/chenzetong\/_next\/static\/media\/([^"]*)"[^>]*>/g, 
-    match => match.replace(/href="\/chenzetong\/chenzetong\/_next\/static\/media\/([^"]*)"/g, 'href="/chenzetong/_next/static/media/$1"'));
-  
-  // 8. 修复特定文件路径 - 只处理最重要的几个
-  const importantFiles = [
-    'a34f9d1faa5f3315-s.p.woff2',  // 关键字体文件
-    '555d41a0fcb396b0.css',
+  // 2. 处理所有特定文件 - 提前处理，这样后面的通用替换规则不会影响它们
+  const specificFiles = [
+    'a34f9d1faa5f3315-s.p.woff2',  // 字体文件
+    '555d41a0fcb396b0.css',        // CSS文件 
+    '4bd1b696-21cefdb9a3c74919.js', // JS文件
     'webpack-1a627a45f621770c.js',
-    'main-app-6fcf18cda217580d.js'
+    'main-app-6fcf18cda217580d.js',
+    'layout-d588d9695c3296e3.js',
+    'page-913f98ba578cac95.js',
+    '684-836981e0e44cfcdd.js',
+    '874-0715c6660f33056f.js'
   ];
   
-  importantFiles.forEach(file => {
+  specificFiles.forEach(file => {
+    // 使用非贪婪匹配，确保能捕获到正确的路径
     if (file.endsWith('.woff2')) {
-      // 字体文件特殊处理
+      // 字体文件特殊处理 - 确保有相对路径和绝对路径两种形式
+      content = content.replace(
+        new RegExp(`href="[^"]*${file}"`, 'g'),
+        `href="/chenzetong/_next/static/media/${file}"`
+      );
       content = content.replace(
         new RegExp(`https://chenzetong\\.github\\.io/chenzetong/_next/static/media/${file}`, 'g'),
-        './_next/static/media/' + file
+        `https://chenzetong.github.io/chenzetong/_next/static/media/${file}`
+      );
+      // 修复preload链接
+      content = content.replace(
+        new RegExp(`<link[^>]*rel="preload"[^>]*href="[^"]*${file}"[^>]*>`, 'g'),
+        match => match.replace(/href="[^"]*"/g, `href="/chenzetong/_next/static/media/${file}"`)
       );
     } else if (file.endsWith('.css')) {
       // CSS文件处理
       content = content.replace(
-        new RegExp(`href="[^"]*/${file}"`, 'g'), 
-        `href="./static/css/${file}"`
+        new RegExp(`href="[^"]*${file}"`, 'g'), 
+        `href="/chenzetong/_next/static/css/${file}"`
       );
     } else if (file.endsWith('.js')) {
-      // JS文件处理
+      // JS文件处理，根据文件名判断存放位置
+      let folder = 'chunks';
+      if (file.includes('layout') || file.includes('page')) {
+        folder = 'chunks/app';
+      }
       content = content.replace(
-        new RegExp(`src="[^"]*/${file}"`, 'g'), 
-        `src="./static/chunks/${file}"`
+        new RegExp(`src="[^"]*${file}"`, 'g'), 
+        `src="/chenzetong/_next/static/${folder}/${file}"`
       );
     }
   });
+  
+  // 3. 修复一般路径前缀
+  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="/chenzetong/_next/');
+  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="/chenzetong/_next/');
+  
+  // 4. 修复静态资源路径
+  content = content.replace(/href="\/chenzetong\/static\//g, 'href="/chenzetong/static/');
+  content = content.replace(/src="\/chenzetong\/static\//g, 'src="/chenzetong/static/');
+  content = content.replace(/href="\/chenzetong\/favicon/g, 'href="/chenzetong/favicon');
+  
+  // 5. 修复相对路径
+  content = content.replace(/href="\/chenzetong\//g, 'href="/chenzetong/');
+  content = content.replace(/src="\/chenzetong\//g, 'src="/chenzetong/');
+  
+  // 6. 检查是否有任何无效的链接残留
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/_next\//g, 'https://chenzetong.github.io/chenzetong/_next/');
+  
+  // 7. 特殊处理preload链接，确保as属性正确
+  content = content.replace(
+    /<link[^>]*rel="preload"[^>]*href="[^"]*a34f9d1faa5f3315-s\.p\.woff2"[^>]*>/g,
+    match => {
+      if (!/as="font"/.test(match)) {
+        return match.replace(/rel="preload"/, 'rel="preload" as="font"');
+      }
+      return match;
+    }
+  );
 
   fs.writeFileSync(htmlFile, content, 'utf8');
   console.log(`已完成文件处理: ${htmlFile}`);
+}
+
+// 确保文件可用性
+function copyMissingFiles() {
+  const outDir = path.join(__dirname, 'out');
+  const requiredFiles = [
+    {src: '_next/static/css/140248cf6002840f.css', dest: '_next/static/css/555d41a0fcb396b0.css'},
+    {src: '_next/static/chunks/app/page-4f4fed0b9c7a3e33.js', dest: '_next/static/chunks/app/page-913f98ba578cac95.js'},
+    {src: '_next/static/chunks/app/layout-e772fb76f0d1470d.js', dest: '_next/static/chunks/app/layout-d588d9695c3296e3.js'},
+    {src: '_next/static/chunks/main-app-c7464db280b8eb09.js', dest: '_next/static/chunks/main-app-6fcf18cda217580d.js'},
+  ];
+  
+  for (const file of requiredFiles) {
+    const srcPath = path.join(outDir, file.src);
+    const destPath = path.join(outDir, file.dest);
+    if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+      // 确保目标目录存在
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+      // 复制文件
+      fs.copyFileSync(srcPath, destPath);
+      console.log(`已复制文件: ${file.src} -> ${file.dest}`);
+    }
+  }
 }
 
 // 主函数
@@ -99,6 +144,9 @@ function main() {
     console.error('Error: out 目录不存在');
     process.exit(1);
   }
+  
+  // 复制可能缺失的文件
+  copyMissingFiles();
   
   const htmlFiles = findHtmlFiles(outDir);
   console.log(`找到 ${htmlFiles.length} 个HTML文件`);
