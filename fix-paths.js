@@ -102,6 +102,44 @@ function fixPaths(htmlFile) {
   // 17. 处理直接引用根目录下的哈希值文件
   content = content.replace(/href="\/([a-f0-9]{8,}\.[a-z]+)"/g, 'href="./static/$1"');
   content = content.replace(/src="\/([a-f0-9]{8,}\.[a-z]+)"/g, 'src="./static/$1"');
+  
+  // 18. 直接处理用户报告的特定文件 (直接匹配完整文件名)
+  const specificFiles = [
+    '555d41a0fcb396b0.css',
+    '4bd1b696-21cefdb9a3c74919.js',
+    'webpack-1a627a45f621770c.js',
+    'layout-d588d9695c3296e3.js',
+    'page-913f98ba578cac95.js',
+    '684-836981e0e44cfcdd.js',
+    '874-0715c6660f33056f.js',
+    'main-app-6fcf18cda217580d.js'
+  ];
+  
+  specificFiles.forEach(file => {
+    const baseFile = file.split('/').pop(); // 获取文件名部分
+    const isJS = baseFile.endsWith('.js');
+    const isCSS = baseFile.endsWith('.css');
+    
+    if (isJS) {
+      // 检查并替换各种可能的JS文件路径模式
+      content = content.replace(new RegExp(`src="[^"]*/${baseFile}"`, 'g'), `src="./static/chunks/${baseFile}"`);
+      content = content.replace(new RegExp(`src="[^"]*/_next/static/chunks/${baseFile}"`, 'g'), `src="./static/chunks/${baseFile}"`);
+    } else if (isCSS) {
+      // 检查并替换各种可能的CSS文件路径模式
+      content = content.replace(new RegExp(`href="[^"]*/${baseFile}"`, 'g'), `href="./static/css/${baseFile}"`);
+      content = content.replace(new RegExp(`href="[^"]*/_next/static/css/${baseFile}"`, 'g'), `href="./static/css/${baseFile}"`);
+    }
+  });
+  
+  // 19. 特别处理Next.js页面加载时的字体文件引用
+  content = content.replace(
+    /https:\/\/chenzetong\.github\.io\/chenzetong\/_next\/static\/media\/a34f9d1faa5f3315-s\.p\.woff2/g, 
+    './_next/static/media/a34f9d1faa5f3315-s.p.woff2'
+  );
+  content = content.replace(
+    /https:\/\/chenzetong\.github\.io\/_next\/static\/media\/a34f9d1faa5f3315-s\.p\.woff2/g, 
+    './_next/static/media/a34f9d1faa5f3315-s.p.woff2'
+  );
 
   fs.writeFileSync(htmlFile, content, 'utf8');
   console.log(`已完成文件处理: ${htmlFile}`);

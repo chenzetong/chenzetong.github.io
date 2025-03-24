@@ -247,6 +247,87 @@ function copyPublicFiles() {
   }
 }
 
+// 复制和处理特定的问题文件
+function copySpecificFiles() {
+  const outDir = path.join(__dirname, 'out');
+  const nextDir = path.join(outDir, '_next');
+  const staticDir = path.join(outDir, 'static');
+  
+  // 确保目标目录存在
+  const cssDir = path.join(staticDir, 'css');
+  const chunksDir = path.join(staticDir, 'chunks');
+  
+  if (!fs.existsSync(cssDir)) {
+    fs.mkdirSync(cssDir, { recursive: true });
+  }
+  
+  if (!fs.existsSync(chunksDir)) {
+    fs.mkdirSync(chunksDir, { recursive: true });
+  }
+  
+  // 特定文件列表（从404错误中提取）
+  const specificFiles = [
+    { name: '555d41a0fcb396b0.css', type: 'css' },
+    { name: '4bd1b696-21cefdb9a3c74919.js', type: 'chunks' },
+    { name: 'webpack-1a627a45f621770c.js', type: 'chunks' },
+    { name: 'layout-d588d9695c3296e3.js', type: 'chunks' },
+    { name: 'page-913f98ba578cac95.js', type: 'chunks' },
+    { name: '684-836981e0e44cfcdd.js', type: 'chunks' },
+    { name: '874-0715c6660f33056f.js', type: 'chunks' },
+    { name: 'main-app-6fcf18cda217580d.js', type: 'chunks' }
+  ];
+  
+  let filesFound = 0;
+  
+  // 搜索和复制每个文件
+  for (const file of specificFiles) {
+    // 从 _next 目录和子目录搜索
+    const foundPaths = findFileInDirectory(nextDir, file.name);
+    
+    if (foundPaths.length > 0) {
+      // 复制到相应的目标目录
+      const targetDir = path.join(staticDir, file.type);
+      const targetPath = path.join(targetDir, file.name);
+      
+      try {
+        fs.copyFileSync(foundPaths[0], targetPath);
+        console.log(`已复制特定文件: ${file.name} 到 static/${file.type} 目录`);
+        filesFound++;
+      } catch (err) {
+        console.error(`复制文件失败: ${file.name}`, err.message);
+      }
+    } else {
+      console.log(`未找到特定文件: ${file.name}`);
+    }
+  }
+  
+  return filesFound;
+}
+
+// 在目录中查找文件
+function findFileInDirectory(startDir, fileName) {
+  const results = [];
+  
+  function findRecursive(dir) {
+    if (!fs.existsSync(dir)) return;
+    
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      if (entry.isDirectory()) {
+        findRecursive(fullPath);
+      } else if (entry.name === fileName) {
+        results.push(fullPath);
+      }
+    }
+  }
+  
+  findRecursive(startDir);
+  return results;
+}
+
 // 主函数
 function main() {
   try {
@@ -254,6 +335,10 @@ function main() {
     const fontCount = copyFontFiles(); // 添加特殊字体文件处理
     if (fontCount > 0) {
       console.log(`已处理 ${fontCount} 个字体文件`);
+    }
+    const specificCount = copySpecificFiles(); // 添加处理特定文件
+    if (specificCount > 0) {
+      console.log(`已处理 ${specificCount} 个特定文件`);
     }
     copyPublicFiles();
     createCNAME();

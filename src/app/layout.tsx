@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="zh">
       <head>
         {/* 预加载关键CSS */}
-        <link rel="preload" href="./static/css/main.css" as="style" />
+        <link rel="preload" href="./_next/static/css/e0a3fc9c87d157b0.css" as="style" />
       </head>
       <body className={inter.className}>
         {/* 添加内联样式，即使外部CSS加载失败也能显示基本样式 */}
