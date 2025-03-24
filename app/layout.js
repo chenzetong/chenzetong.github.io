@@ -12,10 +12,10 @@ export default function RootLayout({ children }) {
         <header>
           <nav className="container">
             <ul>
-              <li><a href="/">首页</a></li>
-              <li><a href="/resume">简历</a></li>
-              <li><a href="/research">研究</a></li>
-              <li><a href="/debug" className="text-red-600">调试</a></li>
+              <li><a href="/chenzetong">首页</a></li>
+              <li><a href="/chenzetong/resume">简历</a></li>
+              <li><a href="/chenzetong/research">研究</a></li>
+              <li><a href="/chenzetong/debug" className="text-red-600">调试</a></li>
             </ul>
           </nav>
         </header>

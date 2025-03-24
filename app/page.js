@@ -7,13 +7,13 @@ export default function Home() {
       <nav>
         <ul>
           <li>
-            <a href="/resume">个人简历</a>
+            <a href="/chenzetong/resume">个人简历</a>
           </li>
           <li>
-            <a href="/research">研究内容</a>
+            <a href="/chenzetong/research">研究内容</a>
           </li>
           <li>
-            <a href="/debug" className="text-red-600">调试信息</a>
+            <a href="/chenzetong/debug" className="text-red-600">调试信息</a>
           </li>
         </ul>
       </nav>
