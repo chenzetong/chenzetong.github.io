@@ -6,6 +6,18 @@ const resourceMappings = [
   {
     src: '_next/static/css/e0a3fc9c87d157b0.css',
     dest: '_next/static/css/555d41a0fcb396b0.css'
+  },
+  {
+    src: '_next/static/chunks/app/layout-b7b2f8b39f695ab9.js',
+    dest: '_next/static/chunks/app/layout-d588d9695c3296e3.js'
+  },
+  {
+    src: '_next/static/chunks/webpack-decb145ea5426c4a.js',
+    dest: '_next/static/chunks/webpack-1a627a45f621770c.js'
+  },
+  {
+    src: '_next/static/chunks/684-19cbf8c69392678d.js',
+    dest: '_next/static/chunks/684-836981e0e44cfcdd.js'
   }
 ];
 
