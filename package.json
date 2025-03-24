@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build && node copy-assets.js && node fix-paths.js && node cleanup.js",
+    "dev": "next dev",
+    "build": "next build && node fix-build.js",
+    "export": "next export",
     "start": "next start",
     "lint": "next lint"
   },
