@@ -27,10 +27,40 @@ function fixPaths(htmlFile) {
   
   let content = fs.readFileSync(htmlFile, 'utf8');
   
-  // 修复各种路径问题
-  // 1. 修复 _next 路径 (去掉 /chenzetong 前缀)
-  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="./_next/');
-  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="./_next/');
+  // 1. 修复双重 chenzetong 路径问题 (最高优先级)
+  content = content.replace(/href="\/chenzetong\/chenzetong\//g, 'href="/chenzetong/');
+  content = content.replace(/src="\/chenzetong\/chenzetong\//g, 'src="/chenzetong/');
+  content = content.replace(/https:\/\/chenzetong\.github\.io\/chenzetong\/chenzetong\//g, 'https://chenzetong.github.io/chenzetong/');
+  content = content.replace(/chenzetong\/chenzetong\//g, 'chenzetong/');
+  
+  // 2. 修复字体和其他资源的链接
+  content = content.replace(/\/chenzetong\/_next\/static\/media\/a34f9d1faa5f3315-s\.p\.woff2/g, '/chenzetong/_next/static/media/a34f9d1faa5f3315-s.p.woff2');
+  
+  // 3. 修复特定的JavaScript和CSS文件路径
+  const filesList = [
+    '555d41a0fcb396b0.css',
+    '4bd1b696-21cefdb9a3c74919.js',
+    'webpack-1a627a45f621770c.js',
+    'main-app-6fcf18cda217580d.js',
+    '684-836981e0e44cfcdd.js',
+    '874-0715c6660f33056f.js',
+    'layout-d588d9695c3296e3.js',
+    'page-913f98ba578cac95.js',
+  ];
+  
+  filesList.forEach(file => {
+    // 处理可能重复的chenzetong路径
+    const pattern = new RegExp(`/chenzetong/chenzetong/_next/static/(chunks|css)/${file}`, 'g');
+    content = content.replace(pattern, `/chenzetong/_next/static/$1/${file}`);
+  });
+  
+  // 4. 处理 preload 链接特殊情况
+  content = content.replace(/<link[^>]*rel="preload"[^>]*href="\/chenzetong\/chenzetong\/_next\/static\/media\/([^"]*)"[^>]*>/g, 
+    match => match.replace(/href="\/chenzetong\/chenzetong\/_next\/static\/media\/([^"]*)"/g, 'href="/chenzetong/_next/static/media/$1"'));
+  
+  // 修复 _next 路径 (去掉重复的 /chenzetong 前缀)
+  content = content.replace(/href="\/chenzetong\/_next\//g, 'href="/chenzetong/_next/');
+  content = content.replace(/src="\/chenzetong\/_next\//g, 'src="/chenzetong/_next/');
   
   // 2. 修复静态资源路径 (从绝对路径转为相对路径)
   content = content.replace(/href="\/chenzetong\/static\//g, 'href="./static/');
